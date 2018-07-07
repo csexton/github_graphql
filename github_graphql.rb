@@ -4,9 +4,10 @@ unless ENV['GITHUB_TOKEN']
   exit
 end
 
-gem 'terminal-table'
-require 'terminal-table'
-gem 'graphql-client'
+require "rubygems"
+require "bundler"
+Bundler.require
+require "terminal-table"
 require "graphql/client"
 require "graphql/client/http"
 require "open-uri"
@@ -40,15 +41,15 @@ query($login: String!, $repo: String!, $pullRequestsCount: Int, $commentsCount: 
           node {
             title
             author {
-              name
+              login
             }
             comments(last: $commentsCount) {
               edges {
                 node {
                   author {
-                    name
+                    login
                   }
-                  
+
                 }
               }
             }
@@ -62,7 +63,7 @@ GRAPHQL
 
 # Execute the query and parse the result
 result=Client.query(CommentQuery, variables: variables)
-authors = result.data.repositoryOwner.repository.pullRequests.edges.map(&:node).map(&:comments).map { |comments| comments.edges.map { |edge| edge.node.author.name } }.flatten
+authors = result.data.repository_owner.repository.pull_requests.edges.map(&:node).map(&:comments).map { |comments| comments.edges.map { |edge| edge.node.author.login } }.flatten
 by_author = authors.inject(Hash.new(0)) {|h,x| h[x]+=1;h}
 sorted = by_author.sort_by {|_key, value| value}.reverse
 
